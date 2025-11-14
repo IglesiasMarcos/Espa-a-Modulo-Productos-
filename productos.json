@@ -1,0 +1,106 @@
+[
+    {
+        "codigo": "654",
+        "nombre": "Notebook Predator Helios 300",
+        "descripcion": "1tb, 16gb rgam, rtx3080, Core i7",
+        "precio": "$1.500.000",
+        "stock": "Medio",
+        "categoria": "Electrónica"
+    },
+    {
+        "codigo": "111",
+        "nombre": "Camiseta Spain Corp Premium",
+        "descripcion": "algodon 100%, Mini Logo Spain Corp en el pecho",
+        "precio": "$17.000",
+        "stock": "Alto",
+        "categoria": "Ropa"
+    },
+    {
+        "codigo": "654",
+        "nombre": "Auriculares Bluetooth Pro",
+        "descripcion": "Auriculares inalámbricos con cancelación activa de ruido y estuche de carga rápida.",
+        "precio": "$100.000",
+        "stock": "Medio",
+        "categoria": "Electrónica"
+    },
+    {
+        "codigo": "655",
+        "nombre": "Teclado Mecánico RGB",
+        "descripcion": "Teclado mecánico retroiluminado con switches rojos y estructura metálica.",
+        "precio": "$50.000",
+        "stock": "Medio",
+        "categoria": "Electrónica"
+    },
+    {
+        "codigo": "657",
+        "nombre": "Mochila Antirrobo SpainTech",
+        "descripcion": "Mochila con compartimento para notebook, puerto USB y cierre oculto.",
+        "precio": "$60.000",
+        "stock": "Medio",
+        "categoria": "Accesorios"
+    },
+    {
+        "codigo": "659",
+        "nombre": "Botella Térmica de Acero",
+        "descripcion": "Botella de acero inoxidable de 750ml, conserva temperatura hasta 12 horas.",
+        "precio": "$20.000",
+        "stock": "Medio",
+        "categoria": "Accesorios"
+    },
+    {
+        "codigo": "660",
+        "nombre": "Drone MiniFly 3000",
+        "descripcion": "Drone compacto con cámara HD, control remoto y autonomía de 20 minutos.",
+        "precio": "$900.000",
+        "stock": "Bajo",
+        "categoria": "Electrónica"
+    },
+    {
+        "codigo": "662",
+        "nombre": "Pulsera de Cuero Estilo Clásica",
+        "descripcion": "Pulsera ajustable de cuero genuino con detalles metálicos.",
+        "precio": "$17.000",
+        "stock": "Medio",
+        "categoria": "Accesorios"
+    },
+    {
+        "codigo": "112",
+        "nombre": "Camiseta Spain Tech",
+        "descripcion": "Camiseta de algodón con el logo oficial de Spain Corp estampado en la espalda.",
+        "precio": "$15.000",
+        "stock": "Alto",
+        "categoria": "Ropa"
+    },
+    {
+        "codigo": "501",
+        "nombre": "Set de Construcción Espacial",
+        "descripcion": "Bloques de construcción para armar una estación espacial completa.",
+        "precio": "$17.000",
+        "stock": "Alto",
+        "categoria": "Juguetes"
+    },
+    {
+        "codigo": "506",
+        "nombre": "Muñeco de Acción Robotix",
+        "descripcion": "Figura articulada con luces LED y efectos de sonido, ideal para coleccionistas.",
+        "precio": "$17.000",
+        "stock": "Alto",
+        "categoria": "Juguetes"
+    },
+    {
+        "codigo": "201",
+        "nombre": "Llavero LED SpainTech",
+        "descripcion": "Llavero con luz LED y diseño del logo SpainTech en metal cromado.",
+        "precio": "$5.000",
+        "stock": "Alto",
+        "categoria": "Otros"
+    },
+    {
+        "codigo": "607",
+        "nombre": "DualSense",
+        "descripcion": "Mando Para PS5, Bluetooth, Audio3D",
+        "precio": "$120.000",
+        "stock": "Medio",
+        "categoria": "Electrónica"
+    }
+]

@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# PyInstaller
+*.spec
+
+# Editor / OS files
+*.swp
+.DS_Store
+Thumbs.db
+
+# OneDrive temporary files
+~$*
+
+# local settings
+.settings/
+
+# VS Code
+.vscode/
+
+# Python cache
+*.pyc
+
+# If you keep secrets locally
+.env
+
+# Build folders from your packaging
+build/
+
+# Do not ignore assets, JSON or your source files
+# keep: assets/, productos.json, usuarios.json
