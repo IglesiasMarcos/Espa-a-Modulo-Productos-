@@ -291,8 +291,55 @@ class VerProductos:
                 messagebox.showerror("Error", "El archivo JSON está corrupto.")
                 return
 
+        # Normalizar y calcular stock numérico en memoria para cada producto
+        STOCK_MAP = {
+            "Alto": 30,
+            "alto": 30,
+            "Medio": 15,
+            "medio": 15,
+            "Bajo": 5,
+            "bajo": 5,
+            "Sin Stock": 0,
+            "sin stock": 0,
+            "SinStock": 0,
+            "nostock": 0,
+        }
+
+        for p in productos:
+            # Preferir campos numéricos existentes
+            qty = None
+            # Algunos JSON pueden tener un campo 'stock' como número o como texto
+            stock_field = p.get("stock")
+            if isinstance(stock_field, int):
+                qty = stock_field
+            else:
+                try:
+                    # si es string con dígitos (ej '10')
+                    if isinstance(stock_field, str) and stock_field.strip().isdigit():
+                        qty = int(stock_field.strip())
+                except Exception:
+                    qty = None
+
+            if qty is None:
+                # Mapear por etiqueta cualitativa
+                if isinstance(stock_field, str) and stock_field in STOCK_MAP:
+                    qty = STOCK_MAP[stock_field]
+                else:
+                    # fallback: si no hay campo, 0
+                    qty = 0
+
+            # almacenar en campo interno para manejo en runtime (no sobrescribe JSON original)
+            p["_stock_qty"] = qty
+
         self.productos_completos = productos
         self.mostrar_productos(productos)
+
+    def buscar_producto_por_id(self, id_producto):
+        """Buscar producto en la lista `productos_completos` por su id (usar obtener_id)."""
+        for p in self.productos_completos:
+            if str(obtener_id(p)) == str(id_producto):
+                return p
+        return None
 
     # _______________________________________________
     #           Mostrar productos en el treeview
@@ -309,7 +356,7 @@ class VerProductos:
                     obtener_id(prod),
                     prod.get("nombre", ""),
                     prod.get("precio", ""),
-                    prod.get("stock", ""),
+                    prod.get("_stock_qty", prod.get("stock", "")),
                     prod.get("descripcion", "")
                 ),
                 tags=(tag,)
@@ -371,8 +418,6 @@ class VerProductos:
     def contraer_carrito(self):
         """Ocultar el contenido del carrito"""
         self.carrito_expandido = False
-        self.btn_carrito_toggle.config(text="🛒 ▼")
-        
         # Ocultar widgets del carrito (excepto el botón toggle)
         for widget in self.carrito_container.winfo_children():
             if widget != self.btn_carrito_toggle:
@@ -395,14 +440,28 @@ class VerProductos:
         
         id_producto = valores[0]
         nombre = valores[1]
-        
+
         # Limpiar precio: remover $, puntos y convertir a float
         precio_str = str(valores[2]).replace("$", "").replace(".", "").strip()
         try:
             precio = float(precio_str) if precio_str else 0
         except ValueError:
             precio = 0
-        
+
+        # Buscar producto real y verificar stock
+        producto = self.buscar_producto_por_id(id_producto)
+        if producto is None:
+            messagebox.showerror("Error", "No se encontró el producto en la lista interna.")
+            return
+
+        disponible = int(producto.get("_stock_qty", 0))
+        if disponible <= 0:
+            messagebox.showwarning("Sin stock", f"El producto '{nombre}' no tiene stock disponible")
+            return
+
+        # Decrementar stock disponible en memoria
+        producto["_stock_qty"] = disponible - 1
+
         # Si ya está en el carrito, aumentar cantidad
         if id_producto in self.carrito:
             self.carrito[id_producto]["cantidad"] += 1
@@ -412,13 +471,15 @@ class VerProductos:
                 "precio": precio,
                 "cantidad": 1
             }
-        
+
+        # Actualizar vistas
         self.actualizar_carrito()
-        
+        self.mostrar_productos(self.productos_completos)
+
         # Expandir carrito automáticamente
         if not self.carrito_expandido:
             self.expandir_carrito()
-        
+
         messagebox.showinfo("Éxito", f"✅ {nombre} agregado al carrito")
     
     def quitar_del_carrito(self):
@@ -433,13 +494,19 @@ class VerProductos:
         valores = item["values"]
         nombre = valores[0]
         
-        # Buscar y eliminar por nombre
+        # Buscar y eliminar por nombre; restaurar stock en la lista de productos
         for id_prod, datos in list(self.carrito.items()):
             if datos["nombre"] == nombre:
+                cantidad = datos.get("cantidad", 1)
+                producto = self.buscar_producto_por_id(id_prod)
+                if producto is not None:
+                    producto["_stock_qty"] = producto.get("_stock_qty", 0) + cantidad
+                # eliminar del carrito
                 del self.carrito[id_prod]
                 break
-        
+
         self.actualizar_carrito()
+        self.mostrar_productos(self.productos_completos)
         messagebox.showinfo("Éxito", f"❌ {nombre} removido del carrito")
     
     def limpiar_carrito(self):
