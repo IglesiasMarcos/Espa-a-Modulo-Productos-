@@ -23,7 +23,7 @@ class VerProductos:
     def __init__(self, root):
         self.root = root
         self.root.title("Listado de Productos — Spain CORP")
-        self.root.geometry("1000x720")
+        self.root.geometry("1200x800")
 
         # ==============================
         #   PALETA DE COLORES ESPAÑA
@@ -35,17 +35,30 @@ class VerProductos:
 
         self.root.configure(bg=ROJO)
 
+        # ==============================
+        #   CARRITO (diccionario)
+        # ==============================
+        self.carrito = {}  # {id_producto: {"nombre": ..., "precio": ..., "cantidad": ...}}
+        self.carrito_expandido = False  # Estado del carrito (expandido/contraído)
+
         # Marco exterior amarillo 🇪🇸
         marco = tk.Frame(self.root, bg=AMARILLO, bd=5)
         marco.pack(expand=True, fill="both", padx=20, pady=20)
 
-        # Contenedor interior blanco
+        # Contenedor interior blanco (con dos secciones: productos y carrito)
         contenedor = tk.Frame(marco, bg=BLANCO)
         contenedor.pack(expand=True, fill="both", padx=10, pady=10)
 
-        # Título
+        # ==============================
+        #   DIVISIÓN PRINCIPAL (L y R)
+        # ==============================
+        # Lado izquierdo: Productos
+        left_frame = tk.Frame(contenedor, bg=BLANCO)
+        left_frame.pack(side="left", expand=True, fill="both", padx=5, pady=5)
+
+        # Título (LEFT)
         titulo = tk.Label(
-            contenedor,
+            left_frame,
             text="📦 Catálogo de Productos",
             font=("Arial", 26, "bold"),
             bg=BLANCO,
@@ -53,10 +66,33 @@ class VerProductos:
         )
         titulo.pack(pady=5)
 
+        # Lado derecho: Carrito (inicialmente colapsado)
+        right_frame = tk.Frame(contenedor, bg=BLANCO)
+        right_frame.pack(side="right", fill="y", padx=5, pady=5)
+        
+        # Frame para el botón de toggle y el carrito
+        self.carrito_container = tk.Frame(right_frame, bg=BLANCO, relief="solid", bd=2)
+        self.carrito_container.pack(fill="y")
+        
+        # Botón para expandir/contraer carrito
+        self.btn_carrito_toggle = tk.Button(
+            self.carrito_container,
+            text="🛒",
+            font=("Arial", 18, "bold"),
+            bg=AMARILLO,
+            fg=ROJO_OSCURO,
+            command=self.toggle_carrito,
+            padx=5,
+            pady=5,
+            relief="solid",
+            bd=2
+        )
+        self.btn_carrito_toggle.pack(fill="x", padx=2, pady=2)
+
         # ==============================
-        #   BUSCADOR 🔍
+        #   BUSCADOR 🔍 (LEFT)
         # ==============================
-        buscador_frame = tk.Frame(contenedor, bg=BLANCO)
+        buscador_frame = tk.Frame(left_frame, bg=BLANCO)
         buscador_frame.pack(fill="x", padx=10, pady=5)
 
         tk.Label(
@@ -117,7 +153,7 @@ class VerProductos:
         columnas = ("ID", "Nombre", "Precio", "Stock", "Descripción")
 
         self.tabla = ttk.Treeview(
-            contenedor,
+            left_frame,
             columns=columnas,
             show="headings"
         )
@@ -125,11 +161,24 @@ class VerProductos:
         for col in columnas:
             self.tabla.heading(col, text=col)
             if col == "Descripción":
-                self.tabla.column(col, width=350, anchor="w")
+                self.tabla.column(col, width=250, anchor="w")
             else:
-                self.tabla.column(col, width=150, anchor="center")
+                self.tabla.column(col, width=120, anchor="center")
 
         self.tabla.pack(expand=True, fill="both", padx=10, pady=10)
+        
+        # Botón para agregar al carrito (LEFT)
+        btn_agregar = tk.Button(
+            left_frame,
+            text="➕ Agregar al carrito",
+            bg=AMARILLO,
+            fg=ROJO_OSCURO,
+            font=("Arial", 11, "bold"),
+            padx=10,
+            pady=5,
+            command=self.agregar_al_carrito
+        )
+        btn_agregar.pack(pady=5)
 
         self.tabla.tag_configure("fila_par", background="#FFF7CC")
         self.tabla.tag_configure("fila_impar", background="#FFFFFF")
@@ -137,6 +186,83 @@ class VerProductos:
         # Cargar datos
         self.productos_completos = []
         self.cargar_productos()
+
+        # ==============================
+        #   PANEL DEL CARRITO (RIGHT)
+        # ==============================
+        titulo_carrito = tk.Label(
+            self.carrito_container,
+            text="🛒 Carrito de Compras",
+            font=("Arial", 16, "bold"),
+            bg=BLANCO,
+            fg=ROJO_OSCURO
+        )
+        titulo_carrito.pack(pady=5)
+
+        # Tabla del carrito
+        columnas_carrito = ("Nombre", "Precio", "Cant.", "Subtotal")
+        
+        self.tabla_carrito = ttk.Treeview(
+            self.carrito_container,
+            columns=columnas_carrito,
+            show="headings",
+            height=10
+        )
+        
+        for col in columnas_carrito:
+            self.tabla_carrito.heading(col, text=col)
+            if col == "Nombre":
+                self.tabla_carrito.column(col, width=120, anchor="w")
+            else:
+                self.tabla_carrito.column(col, width=80, anchor="center")
+        
+        self.tabla_carrito.pack(expand=True, fill="both", padx=5, pady=5)
+        
+        # Botón para quitar del carrito
+        btn_quitar = tk.Button(
+            self.carrito_container,
+            text="❌ Quitar seleccionado",
+            bg=ROJO,
+            fg=BLANCO,
+            font=("Arial", 10, "bold"),
+            command=self.quitar_del_carrito
+        )
+        btn_quitar.pack(pady=5, fill="x", padx=5)
+        
+        # Total del carrito
+        total_frame = tk.Frame(self.carrito_container, bg=BLANCO)
+        total_frame.pack(fill="x", padx=5, pady=10)
+        
+        tk.Label(
+            total_frame,
+            text="Total:",
+            font=("Arial", 13, "bold"),
+            bg=BLANCO,
+            fg=ROJO_OSCURO
+        ).pack(side="left")
+        
+        self.label_total = tk.Label(
+            total_frame,
+            text="$0.00",
+            font=("Arial", 13, "bold"),
+            bg=BLANCO,
+            fg=ROJO
+        )
+        self.label_total.pack(side="right")
+        
+        # Botón limpiar carrito
+        btn_limpiar_carrito = tk.Button(
+            self.carrito_container,
+            text="🗑️ Limpiar carrito",
+            bg=AMARILLO,
+            fg=ROJO_OSCURO,
+            font=("Arial", 10, "bold"),
+            command=self.limpiar_carrito
+        )
+        btn_limpiar_carrito.pack(pady=5, fill="x", padx=5)
+        
+        # Inicialmente contraer el carrito (ocultar contenido excepto botón)
+        self.contraer_carrito()
 
         # Botón volver
         tk.Button(
@@ -220,6 +346,140 @@ class VerProductos:
     def limpiar_busqueda(self):
         self.buscador_var.set("")
         self.mostrar_productos(self.productos_completos)
+
+
+# _______________________________________________
+#         MÉTODOS PARA EXPANDIR/CONTRAER CARRITO
+# _______________________________________________
+    def toggle_carrito(self):
+        """Alterna entre expandir y contraer el carrito"""
+        if self.carrito_expandido:
+            self.contraer_carrito()
+        else:
+            self.expandir_carrito()
+    
+    def expandir_carrito(self):
+        """Mostrar el contenido del carrito"""
+        self.carrito_expandido = True
+        self.btn_carrito_toggle.config(text="🛒 ▲")
+        
+        # Mostrar widgets del carrito
+        for widget in self.carrito_container.winfo_children():
+            if widget != self.btn_carrito_toggle:
+                widget.pack(side="top", fill="x", expand=True, pady=2)
+    
+    def contraer_carrito(self):
+        """Ocultar el contenido del carrito"""
+        self.carrito_expandido = False
+        self.btn_carrito_toggle.config(text="🛒 ▼")
+        
+        # Ocultar widgets del carrito (excepto el botón toggle)
+        for widget in self.carrito_container.winfo_children():
+            if widget != self.btn_carrito_toggle:
+                widget.pack_forget()
+
+
+# _______________________________________________
+#              MÉTODOS DEL CARRITO
+# _______________________________________________
+    def agregar_al_carrito(self):
+        """Agregar producto seleccionado al carrito"""
+        seleccion = self.tabla.selection()
+        
+        if not seleccion:
+            messagebox.showwarning("Advertencia", "Selecciona un producto primero")
+            return
+        
+        item = self.tabla.item(seleccion[0])
+        valores = item["values"]
+        
+        id_producto = valores[0]
+        nombre = valores[1]
+        
+        # Limpiar precio: remover $, puntos y convertir a float
+        precio_str = str(valores[2]).replace("$", "").replace(".", "").strip()
+        try:
+            precio = float(precio_str) if precio_str else 0
+        except ValueError:
+            precio = 0
+        
+        # Si ya está en el carrito, aumentar cantidad
+        if id_producto in self.carrito:
+            self.carrito[id_producto]["cantidad"] += 1
+        else:
+            self.carrito[id_producto] = {
+                "nombre": nombre,
+                "precio": precio,
+                "cantidad": 1
+            }
+        
+        self.actualizar_carrito()
+        
+        # Expandir carrito automáticamente
+        if not self.carrito_expandido:
+            self.expandir_carrito()
+        
+        messagebox.showinfo("Éxito", f"✅ {nombre} agregado al carrito")
+    
+    def quitar_del_carrito(self):
+        """Quitar producto seleccionado del carrito"""
+        seleccion = self.tabla_carrito.selection()
+        
+        if not seleccion:
+            messagebox.showwarning("Advertencia", "Selecciona un item del carrito")
+            return
+        
+        item = self.tabla_carrito.item(seleccion[0])
+        valores = item["values"]
+        nombre = valores[0]
+        
+        # Buscar y eliminar por nombre
+        for id_prod, datos in list(self.carrito.items()):
+            if datos["nombre"] == nombre:
+                del self.carrito[id_prod]
+                break
+        
+        self.actualizar_carrito()
+        messagebox.showinfo("Éxito", f"❌ {nombre} removido del carrito")
+    
+    def limpiar_carrito(self):
+        """Vaciar el carrito completamente"""
+        if not self.carrito:
+            messagebox.showinfo("Información", "El carrito ya está vacío")
+            return
+        
+        confirmar = messagebox.askyesno("Confirmar", "¿Estás seguro de limpiar el carrito?")
+        if confirmar:
+            self.carrito = {}
+            self.actualizar_carrito()
+            messagebox.showinfo("Éxito", "🗑️ Carrito vaciado")
+    
+    def actualizar_carrito(self):
+        """Actualizar la visualización del carrito y el total"""
+        self.tabla_carrito.delete(*self.tabla_carrito.get_children())
+        
+        total = 0
+        
+        for id_prod, datos in self.carrito.items():
+            nombre = datos["nombre"]
+            precio = datos["precio"]
+            cantidad = datos["cantidad"]
+            subtotal = precio * cantidad
+            total += subtotal
+            
+            self.tabla_carrito.insert(
+                "",
+                "end",
+                values=(
+                    nombre,
+                    f"${precio:.2f}",
+                    cantidad,
+                    f"${subtotal:.2f}"
+                )
+            )
+        
+        # Actualizar total
+        self.label_total.config(text=f"${total:.2f}")
 
 
 # _______________________________________________
